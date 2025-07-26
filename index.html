@@ -1,10 +1,12 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Convertisseur Professionnel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         :root {
             --primary: #2c3e50;
@@ -21,6 +23,7 @@
             --online: #9b59b6;
             --cash: #2ecc71;
             --admin: #8e44ad;
+            --cloud: #f39c12;
         }
         
         * {
@@ -45,7 +48,7 @@
             border-radius: 15px;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             overflow: hidden;
             position: relative;
         }
@@ -391,6 +394,39 @@
             color: var(--secondary);
         }
         
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: #f1f3f5;
+            border-radius: 50px;
+            padding: 5px;
+        }
+        
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 14px;
+            cursor: pointer;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .admin-tab {
+            background: var(--admin);
+            color: white;
+        }
+        
+        .admin-tab.active {
+            background: #7d3c98;
+        }
+        
         footer {
             text-align: center;
             padding: 20px 15px;
@@ -398,7 +434,6 @@
             font-size: 1rem;
             border-top: 1px solid #eee;
             background: #f8f9fa;
-            position: relative;
         }
         
         .info-note {
@@ -539,27 +574,34 @@
             color: var(--accent);
         }
         
-        /* Bouton d'accès admin caché */
-        .admin-access-btn {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            width: 40px;
-            height: 40px;
-            background: var(--admin);
-            color: white;
-            border-radius: 50%;
+        /* Nouveau: Section Cloud */
+        .cloud-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .cloud-btn {
+            flex: 1;
+            padding: 16px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 10;
+            gap: 10px;
+            background: var(--cloud);
+            color: white;
         }
         
-        .admin-access-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 10px rgba(142, 68, 173, 0.5);
+        .cloud-btn:hover {
+            background: #e67e22;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
         /* Modal de connexion admin */
@@ -570,7 +612,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -581,8 +623,8 @@
             border-radius: 15px;
             padding: 30px;
             width: 90%;
-            max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             position: relative;
         }
         
@@ -590,51 +632,53 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
-            color: #7f8c8d;
+            color: #777;
         }
         
         .admin-form {
-            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
         
         .admin-form label {
-            display: block;
-            margin-bottom: 8px;
+            font-size: 1.1rem;
             color: var(--primary);
+            font-weight: 600;
         }
         
         .admin-form input {
-            width: 100%;
-            padding: 12px 15px;
-            margin-bottom: 20px;
+            padding: 14px;
             border: 2px solid #ddd;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 16px;
         }
         
-        .admin-form button {
-            background: var(--success);
-            color: white;
-            border: none;
-            padding: 14px 20px;
-            width: 100%;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
+        .cloud-info {
+            background: rgba(243, 156, 18, 0.15);
+            border-left: 4px solid var(--cloud);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
         }
         
-        .admin-form button:hover {
-            background: #219653;
+        /* Loader */
+        .loader {
+            display: none;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--secondary);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
         }
         
-        .admin-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -647,6 +691,11 @@
             <h1>Convertisseur Professionnel</h1>
             <p>Produits, Services & Soldes - Conversion en Dinar Algérien</p>
         </header>
+        
+        <div class="tabs">
+            <div class="tab active" id="client-tab">Client</div>
+            <div class="tab admin-tab" id="admin-tab">Administration</div>
+        </div>
         
         <section class="converter-section" id="client-section">
             <div class="input-group">
@@ -689,7 +738,7 @@
             </div>
             
             <div class="info-note">
-                <i class="fas fa-info-circle"></i> Le type de transaction détermine le calcul final.
+                <i class="fas fa-info-circle"></i> Le type "Solde" applique une conversion directe sans aucun pourcentage ajouté.
             </div>
             
             <div class="section-title">
@@ -719,10 +768,14 @@
                 
                 <div class="calculation-details" id="calculation-details">
                     <div class="calculation-row">
-                        <span>Montant transaction :</span>
-                        <span id="transaction-amount">0.00 DZD</span>
+                        <span>Montant converti :</span>
+                        <span id="converted-amount">0.00 DZD</span>
                     </div>
-                    <div class="calculation-row" id="tax-row" style="display: none;">
+                    <div class="calculation-row">
+                        <span>Ajout transaction :</span>
+                        <span id="percentage-added">0.00 DZD</span>
+                    </div>
+                    <div class="calculation-row">
                         <span>Taxe paiement :</span>
                         <span id="tax-added">0.00 DZD</span>
                     </div>
@@ -743,6 +796,20 @@
                 <div class="admin-header">
                     <i class="fas fa-user-cog"></i>
                     <h2>Administration du Convertisseur</h2>
+                </div>
+                
+                <div class="cloud-info">
+                    <i class="fas fa-cloud"></i> 
+                    <strong>Synchronisation Cloud</strong> - Sauvegardez vos paramètres sur le cloud pour les utiliser sur tous vos appareils
+                </div>
+                
+                <div class="cloud-actions">
+                    <button class="cloud-btn" id="save-cloud-btn">
+                        <i class="fas fa-cloud-upload-alt"></i> Sauvegarder sur Cloud
+                    </button>
+                    <button class="cloud-btn" id="load-cloud-btn">
+                        <i class="fas fa-cloud-download-alt"></i> Charger du Cloud
+                    </button>
                 </div>
                 
                 <div class="settings-grid">
@@ -810,7 +877,7 @@
                 
                 <div class="password-actions">
                     <button class="admin-btn save-btn" id="admin-save-btn">
-                        <i class="fas fa-save"></i> Sauvegarder
+                        <i class="fas fa-save"></i> Sauvegarder Local
                     </button>
                     <button class="admin-btn reset-btn" id="admin-reset-btn">
                         <i class="fas fa-undo"></i> Réinitialiser
@@ -821,21 +888,19 @@
                 </div>
                 
                 <div class="admin-status" id="admin-status"></div>
+                <div class="loader" id="loader"></div>
             </div>
         </section>
         
         <footer>
             <p>Convertissez facilement EUR/USD en DZD avec options de transaction et paiement</p>
-            <div class="admin-access-btn" id="admin-access-btn">
-                <i class="fas fa-cog"></i>
-            </div>
         </footer>
     </div>
 
     <!-- Modal de connexion admin -->
     <div class="admin-modal" id="admin-modal">
         <div class="modal-content">
-            <span class="close-modal" id="close-modal">&times;</span>
+            <span class="close-modal">&times;</span>
             <h2 style="text-align: center; color: var(--admin);">
                 <i class="fas fa-lock"></i> Connexion Administrateur
             </h2>
@@ -845,12 +910,12 @@
             
             <div class="admin-form">
                 <label for="admin-username">Nom d'utilisateur</label>
-                <input type="text" id="admin-username" placeholder="admin" value="admin" readonly>
+                <input type="text" id="admin-username" placeholder="admin" value="admin">
                 
                 <label for="admin-password">Mot de passe</label>
                 <input type="password" id="admin-password" placeholder="Entrez votre mot de passe">
                 
-                <button id="admin-login-btn">
+                <button id="admin-login-btn" class="btn">
                     <i class="fas fa-sign-in-alt"></i> Se connecter
                 </button>
             </div>
@@ -860,6 +925,20 @@
     </div>
 
     <script>
+        // Configuration Firebase - REMPLACEZ CES VALEURS PAR VOTRE PROPRE CONFIGURATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdXqKQJ8QyF0JYdY7j1g6o9zqLmNpO0rU",
+            authDomain: "convertisseur-pro-dz.firebaseapp.com",
+            projectId: "convertisseur-pro-dz",
+            storageBucket: "convertisseur-pro-dz.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890abcdef"
+        };
+
+        // Initialiser Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         // Éléments DOM
         const amountInput = document.getElementById('amount');
         const currencySelect = document.getElementById('currency');
@@ -874,17 +953,18 @@
         const resultBadge = document.querySelector('.result-badge');
         const clientSection = document.getElementById('client-section');
         const adminSection = document.getElementById('admin-section');
+        const clientTab = document.getElementById('client-tab');
+        const adminTab = document.getElementById('admin-tab');
         
         // Éléments de calcul
-        const transactionAmount = document.getElementById('transaction-amount');
+        const convertedAmount = document.getElementById('converted-amount');
+        const percentageAdded = document.getElementById('percentage-added');
         const taxAdded = document.getElementById('tax-added');
         const totalAmount = document.getElementById('total-amount');
-        const taxRow = document.getElementById('tax-row');
         
         // Éléments admin
         const adminModal = document.getElementById('admin-modal');
-        const adminAccessBtn = document.getElementById('admin-access-btn');
-        const closeModal = document.getElementById('close-modal');
+        const closeModal = document.querySelector('.close-modal');
         const adminLoginBtn = document.getElementById('admin-login-btn');
         const adminUsername = document.getElementById('admin-username');
         const adminPassword = document.getElementById('admin-password');
@@ -893,6 +973,9 @@
         const adminSaveBtn = document.getElementById('admin-save-btn');
         const adminResetBtn = document.getElementById('admin-reset-btn');
         const adminStatus = document.getElementById('admin-status');
+        const saveCloudBtn = document.getElementById('save-cloud-btn');
+        const loadCloudBtn = document.getElementById('load-cloud-btn');
+        const loader = document.getElementById('loader');
         
         // Champs de paramètres admin
         const adminEurRate = document.getElementById('admin-eur-rate');
@@ -936,6 +1019,7 @@
             
             const rate = config.rates[currency];
             const baseAmount = amount * rate;
+            convertedAmount.textContent = baseAmount.toFixed(2) + " DZD";
             
             // Calcul du pourcentage selon le choix
             let percentage = 0;
@@ -952,22 +1036,17 @@
                 percentageValue = baseAmount * percentage;
             }
             
-            // Montant après ajout du pourcentage de transaction
-            const amountAfterTransaction = baseAmount + percentageValue;
-            transactionAmount.textContent = amountAfterTransaction.toFixed(2) + " DZD";
+            percentageAdded.textContent = percentageValue.toFixed(2) + " DZD (" + (percentage * 100) + "%)";
             
             // Calcul de la taxe si paiement en ligne
             let taxValue = 0;
             if (paymentMethod === 'online') {
-                taxValue = amountAfterTransaction * (config.taxRate / 100);
-                taxRow.style.display = 'flex';
-                taxAdded.textContent = taxValue.toFixed(2) + " DZD (" + config.taxRate + "%)";
-            } else {
-                taxRow.style.display = 'none';
+                taxValue = (baseAmount + percentageValue) * (config.taxRate / 100);
             }
+            taxAdded.textContent = taxValue.toFixed(2) + " DZD (" + config.taxRate + "%)";
             
             // Calcul du total final
-            const total = amountAfterTransaction + taxValue;
+            const total = baseAmount + percentageValue + taxValue;
             totalAmount.textContent = total.toFixed(2) + " DZD";
             resultValue.textContent = total.toFixed(2) + " DZD";
             
@@ -981,6 +1060,9 @@
             const savedConfig = localStorage.getItem('converterConfig');
             if (savedConfig) {
                 config = JSON.parse(savedConfig);
+                showAdminStatus("Configuration locale chargée!");
+            } else {
+                showAdminStatus("Configuration par défaut chargée");
             }
             
             // Mettre à jour l'interface admin si connecté
@@ -992,6 +1074,7 @@
         // Sauvegarder la configuration
         function saveConfig() {
             localStorage.setItem('converterConfig', JSON.stringify(config));
+            showAdminStatus("Configuration locale sauvegardée!");
         }
 
         // Mettre à jour le formulaire admin
@@ -1071,12 +1154,14 @@
             if (username === "admin" && password === config.adminPassword) {
                 isAdminLoggedIn = true;
                 adminModal.style.display = 'none';
-                clientSection.style.display = 'none';
                 adminSection.style.display = 'block';
+                clientSection.style.display = 'none';
+                clientTab.classList.remove('active');
+                adminTab.classList.add('active');
                 updateAdminForm();
                 loginMessage.textContent = "";
             } else {
-                loginMessage.textContent = "Mot de passe incorrect. Veuillez réessayer.";
+                loginMessage.textContent = "Identifiants incorrects. Veuillez réessayer.";
             }
         }
 
@@ -1085,6 +1170,8 @@
             isAdminLoggedIn = false;
             adminSection.style.display = 'none';
             clientSection.style.display = 'block';
+            clientTab.classList.add('active');
+            adminTab.classList.remove('active');
             adminStatus.textContent = "Vous avez été déconnecté avec succès.";
             adminStatus.style.display = "block";
             setTimeout(() => { adminStatus.style.display = "none"; }, 3000);
@@ -1165,6 +1252,87 @@
             }, 5000);
         }
 
+        // Sauvegarder la configuration sur le cloud
+        async function saveToCloud() {
+            if (!isAdminLoggedIn) {
+                showAdminStatus("Vous devez être connecté en tant qu'admin", true);
+                return;
+            }
+            
+            try {
+                // Ajouter une sécurité supplémentaire avec le mot de passe
+                const password = prompt("Entrez votre mot de passe pour confirmer la sauvegarde cloud:");
+                if (password !== config.adminPassword) {
+                    showAdminStatus("Mot de passe incorrect", true);
+                    return;
+                }
+                
+                // Afficher le loader
+                loader.style.display = 'block';
+                
+                // Sauvegarder sur Firebase
+                await db.collection("configurations").doc("mainConfig").set({
+                    data: JSON.stringify(config),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Masquer le loader
+                loader.style.display = 'none';
+                
+                showAdminStatus("Configuration sauvegardée avec succès sur le cloud!");
+            } catch (error) {
+                console.error("Erreur de sauvegarde cloud:", error);
+                loader.style.display = 'none';
+                showAdminStatus("Erreur lors de la sauvegarde cloud: " + error.message, true);
+            }
+        }
+
+        // Charger la configuration depuis le cloud
+        async function loadFromCloud() {
+            if (!isAdminLoggedIn) {
+                showAdminStatus("Vous devez être connecté en tant qu'admin", true);
+                return;
+            }
+            
+            try {
+                // Ajouter une sécurité supplémentaire avec le mot de passe
+                const password = prompt("Entrez votre mot de passe pour confirmer le chargement cloud:");
+                if (password !== config.adminPassword) {
+                    showAdminStatus("Mot de passe incorrect", true);
+                    return;
+                }
+                
+                // Afficher le loader
+                loader.style.display = 'block';
+                
+                // Charger depuis Firebase
+                const doc = await db.collection("configurations").doc("mainConfig").get();
+                
+                if (doc.exists) {
+                    config = JSON.parse(doc.data().data);
+                    saveConfig(); // Sauvegarder en local
+                    updateAdminForm();
+                    
+                    // Masquer le loader
+                    loader.style.display = 'none';
+                    
+                    showAdminStatus("Configuration chargée avec succès depuis le cloud!");
+                    
+                    // Recalculer le montant actuel si nécessaire
+                    if (amountInput.value) {
+                        convertCurrency();
+                    }
+                } else {
+                    loader.style.display = 'none';
+                    showAdminStatus("Aucune configuration trouvée sur le cloud", true);
+                }
+            } catch (error) {
+                console.error("Erreur de chargement cloud:", error);
+                loader.style.display = 'none';
+                showAdminStatus("Erreur lors du chargement cloud: " + error.message, true);
+            }
+        }
+
         // Initialisation
         function init() {
             // Charger la configuration
@@ -1188,20 +1356,31 @@
                 }
             });
             
-            // Événements pour la section admin
-            adminAccessBtn.addEventListener('click', () => {
-                adminModal.style.display = 'flex';
+            // Événements pour les onglets
+            clientTab.addEventListener('click', () => {
+                if (isAdminLoggedIn) return;
+                clientSection.style.display = 'block';
+                adminSection.style.display = 'none';
+                clientTab.classList.add('active');
+                adminTab.classList.remove('active');
             });
             
+            adminTab.addEventListener('click', () => {
+                if (isAdminLoggedIn) {
+                    clientSection.style.display = 'none';
+                    adminSection.style.display = 'block';
+                    clientTab.classList.remove('active');
+                    adminTab.classList.add('active');
+                } else {
+                    adminModal.style.display = 'flex';
+                }
+            });
+            
+            // Événements pour la modal admin
+            adminLoginBtn.addEventListener('click', adminLogin);
             closeModal.addEventListener('click', () => {
                 adminModal.style.display = 'none';
             });
-            
-            adminLoginBtn.addEventListener('click', adminLogin);
-            
-            adminLogoutBtn.addEventListener('click', adminLogout);
-            adminSaveBtn.addEventListener('click', saveAdminSettings);
-            adminResetBtn.addEventListener('click', resetAdminSettings);
             
             // Fermer la modal en cliquant à l'extérieur
             window.addEventListener('click', (event) => {
@@ -1209,6 +1388,13 @@
                     adminModal.style.display = 'none';
                 }
             });
+            
+            // Événements pour la section admin
+            adminLogoutBtn.addEventListener('click', adminLogout);
+            adminSaveBtn.addEventListener('click', saveAdminSettings);
+            adminResetBtn.addEventListener('click', resetAdminSettings);
+            saveCloudBtn.addEventListener('click', saveToCloud);
+            loadCloudBtn.addEventListener('click', loadFromCloud);
             
             // Initialiser le drapeau
             updateCurrencyFlag();
