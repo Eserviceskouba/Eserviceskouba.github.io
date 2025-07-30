@@ -30,20 +30,12 @@
     }
 
     .header {
-      display: flex;
-      align-items: center;
-      gap: 15px;
+      text-align: center;
       margin-bottom: 30px;
     }
 
-    .header img {
-      height: 60px;
-      border-radius: 8px;
-    }
-
     .header h1 {
-      margin: 0;
-      font-size: 1.8rem;
+      font-size: 2rem;
       color: var(--primary);
     }
 
@@ -114,25 +106,36 @@
       margin-bottom: 10px;
     }
 
+    .payment-links {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .payment-links img {
+      margin-top: 10px;
+      width: 150px;
+      height: 150px;
+    }
+
+    .whatsapp {
+      margin-top: 20px;
+      display: block;
+      text-align: center;
+    }
+
+    .whatsapp a {
+      background-color: #25D366;
+      color: white;
+      padding: 12px 25px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 18px;
+      display: inline-block;
+    }
+
     @media (max-width: 600px) {
       .container {
         padding: 15px;
-      }
-
-      .header {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-        text-align: center;
-      }
-
-      .header h1 {
-        font-size: 1.5rem;
-        margin-top: 5px;
-      }
-
-      .header img {
-        height: 50px;
       }
 
       input, select {
@@ -160,7 +163,6 @@
 <body>
   <div class="container">
     <div class="header">
-      <img src="logo_eservices.jpg" alt="E-Services Logo">
       <h1>E-Services Kouba</h1>
     </div>
 
@@ -181,9 +183,7 @@
 
     <label>Mode de paiement :</label>
     <div class="options" id="payment-options">
-      <div class="option" data-method="online">
-        Paiement par carte Dahabia ou CIB, via site, lien ou QR Code
-      </div>
+      <div class="option" data-method="online">Paiement en ligne (Dahabia / CIB)</div>
       <div class="option active" data-method="cash">Paiement main à main</div>
     </div>
 
@@ -194,6 +194,18 @@
       <div><strong>Frais ajoutés :</strong> <span id="percentage-added"></span></div>
       <div><strong>Taxe paiement :</strong> <span id="tax-added"></span></div>
       <div><strong>Total en DZD :</strong> <span id="total-amount"></span></div>
+    </div>
+
+    <div class="payment-links">
+      <p><strong>💳 Lien de paiement Dahabia / CIB :</strong></p>
+      <a href="https://example.com/paiement" target="_blank">https://example.com/paiement</a>
+
+      <p><strong>📲 QR Code de paiement :</strong></p>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://example.com/paiement" alt="QR Code Paiement">
+    </div>
+
+    <div class="whatsapp">
+      <a href="https://wa.me/213562925172" target="_blank"><i class="fab fa-whatsapp"></i> Contact WhatsApp</a>
     </div>
   </div>
 
