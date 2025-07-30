@@ -3,86 +3,145 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Convertisseur DZD</title>
+  <title>Convertisseur DZD - E-Services</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <style>
+    :root {
+      --primary: #1a2980;
+      --secondary: #26d0ce;
+    }
+
     body {
       margin: 0;
-      padding: 20px;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #1a2980, #26d0ce);
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
       color: #333;
     }
+
     .container {
       background: #fff;
-      border-radius: 12px;
+      margin: 30px auto;
       padding: 20px;
+      border-radius: 12px;
       max-width: 800px;
-      margin: auto;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
-    h1 {
-      text-align: center;
-      color: #1a2980;
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 30px;
     }
+
+    .header .logo {
+      font-size: 28px;
+      background: var(--secondary);
+      color: white;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      color: var(--primary);
+    }
+
     label {
       display: block;
       margin-top: 20px;
       font-weight: bold;
     }
+
     input, select {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       font-size: 16px;
       margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
     }
+
     .options {
       display: flex;
-      gap: 10px;
-      margin-top: 20px;
       flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
     }
+
     .option {
       flex: 1;
-      min-width: 120px;
-      padding: 10px;
+      min-width: 140px;
+      padding: 12px;
       text-align: center;
       border: 2px solid #ccc;
       border-radius: 10px;
       cursor: pointer;
+      transition: all 0.2s ease;
     }
+
     .option.active {
-      border-color: #26d0ce;
       background: #eafafa;
+      border-color: var(--secondary);
     }
+
     .btn {
-      margin-top: 20px;
+      margin-top: 25px;
       width: 100%;
       padding: 15px;
       font-size: 18px;
-      background: #26d0ce;
+      background: var(--secondary);
       color: white;
       border: none;
       border-radius: 10px;
       cursor: pointer;
+      transition: background 0.3s ease;
     }
+
     .btn:hover {
       background: #1fa8a6;
     }
+
     .result {
       margin-top: 30px;
       padding: 20px;
       background: #f1f1f1;
       border-radius: 10px;
     }
+
     .result div {
       margin-bottom: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .header h1 {
+        font-size: 1.4rem;
+      }
+      .header .logo {
+        width: 40px;
+        height: 40px;
+        font-size: 22px;
+      }
+      .option {
+        min-width: 100%;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Convertisseur EUR/USD vers DZD</h1>
+    <div class="header">
+      <div class="logo">
+        <i class="fas fa-globe"></i>
+      </div>
+      <h1>E-Services Kouba</h1>
+    </div>
 
     <label for="amount">Montant à convertir :</label>
     <input type="number" id="amount" placeholder="Entrez le montant" value="100" />
@@ -97,12 +156,13 @@
     <div class="options" id="type-options">
       <div class="option active" data-type="product">Produit</div>
       <div class="option" data-type="service">Service</div>
-      <div class="option" data-type="balance">Solde</div>
     </div>
 
     <label>Mode de paiement :</label>
     <div class="options" id="payment-options">
-      <div class="option" data-method="online">Paiement en ligne</div>
+      <div class="option" data-method="online">
+        Paiement par carte Dahabia ou CIB, via site, lien ou QR Code
+      </div>
       <div class="option active" data-method="cash">Paiement main à main</div>
     </div>
 
@@ -118,15 +178,8 @@
 
   <script>
     const config = {
-      rates: {
-        EUR: 265.0,
-        USD: 240.0
-      },
-      percentages: {
-        product: 10,
-        service: 15,
-        balance: 0
-      },
+      rates: { EUR: 265, USD: 240 },
+      percentages: { product: 10, service: 15 },
       taxRate: 2
     };
 
@@ -142,7 +195,6 @@
     const taxAdded = document.getElementById("tax-added");
     const totalAmount = document.getElementById("total-amount");
 
-    // Choix du type
     document.querySelectorAll("#type-options .option").forEach(opt => {
       opt.addEventListener("click", () => {
         document.querySelectorAll("#type-options .option").forEach(o => o.classList.remove("active"));
@@ -151,7 +203,6 @@
       });
     });
 
-    // Choix du paiement
     document.querySelectorAll("#payment-options .option").forEach(opt => {
       opt.addEventListener("click", () => {
         document.querySelectorAll("#payment-options .option").forEach(o => o.classList.remove("active"));
@@ -160,7 +211,6 @@
       });
     });
 
-    // Conversion
     convertBtn.addEventListener("click", () => {
       const amount = parseFloat(amountInput.value);
       const currency = currencySelect.value;
