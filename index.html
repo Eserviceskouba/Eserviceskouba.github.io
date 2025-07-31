@@ -212,7 +212,6 @@
   <script>
     const config = {
       rates: { EUR: 265, USD: 240 },
-      percentages: { product: 10, service: 15 },
       taxRate: 2
     };
 
@@ -254,8 +253,21 @@
 
       const rate = config.rates[currency];
       const base = amount * rate;
-      const percentage = config.percentages[choiceType] / 100;
-      const fee = base * percentage;
+
+      let percentage = 0;
+      if (choiceType === "product") {
+        if (amount < 80) {
+          percentage = 10;
+        } else if (amount <= 200) {
+          percentage = 8;
+        } else {
+          percentage = 5;
+        }
+      } else if (choiceType === "service") {
+        percentage = 15;
+      }
+
+      const fee = base * (percentage / 100);
       const tax = paymentMethod === "online" ? (base + fee) * (config.taxRate / 100) : 0;
       const total = base + fee + tax;
 
